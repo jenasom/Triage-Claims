@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* -----------------------------------------------------------------
+   Heirs Insurance Group palette.
+
+   Every colour is declared here for all three theme states. Components
+   reference them only through Tailwind utilities (bg-card, text-muted,
+   …) so no component hardcodes a hex that works in only one theme.
+
+   Brand red is #FE0000, taken from the logo wordmark and the site's
+   CTA buttons. Neutrals carry a slight warm grey bias picked up from
+   the logo's globe, so the greys read as chosen rather than default.
+
+   One deliberate divergence: brand red is the accent, but the
+   Investigation route needs to read as danger, not as branding. If
+   both were #FE0000 the highest-risk claims would stop standing out —
+   which is the entire job of the route colours. Investigation is
+   therefore a deeper crimson, clearly distinct from the accent while
+   staying in the brand's red family.
+   ----------------------------------------------------------------- */
+@theme {
+  --color-canvas:    #F8F8F7;
+  --color-card:      #FFFFFF;
+  --color-rail:      #FFFFFF;
+  --color-line:      #E7E5E3;
+  --color-linesoft:  #F2F1EF;
+
+  --color-ink:       #14100F;
+  --color-ink2:      #454140;
+  --color-muted:     #736E6C;
+  --color-faint:     #8D8886;
+
+  /* Brand.
+
+     `accent` is the identity colour, straight from the logo — used for
+     borders, focus rings, rules and marks where it sits against a light
+     ground at full strength.
+
+     `accentfill` is what filled buttons use. White on #FE0000 measures
+     4.03:1, under the 4.5:1 WCAG AA threshold — a property of pure red,
+     not of this palette, and the reason most brands darken red for
+     button fills. #D40000 carries the same brand read at 5.3:1.
+
+     `faint` was also lifted from #A39E9B to #8D8886 so small labels
+     clear 3:1 against white. */
+  --color-accent:      #FE0000;
+  --color-accentfill:  #D40000;
+  --color-accentsoft:  #FFECEC;
+  --color-accentink:   #C20000;
+
+  /* Route semantics. Fast-track green and standard amber are unchanged
+     — they carry meaning, not branding. */
+  --color-fast:    #0E9E52;
+  --color-fastbg:  #E7F5ED;
+  --color-fastink: #077038;
+  --color-std:     #D68910;
+  --color-stdbg:   #FDF3E2;
+  --color-stdink:  #8A5A09;
+  --color-inv:     #B3181F;
+  --color-invbg:   #FCE9EA;
+  --color-invink:  #8E1219;
+
+  --font-display: "Inter Tight", Inter, system-ui, sans-serif;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-card: 14px;
+  --radius-ctl: 9px;
+}
+
+/* Dark theme for viewers whose OS asks for it and who have not
+   explicitly chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-canvas:   #121110;
+    --color-card:     #1C1A19;
+    --color-rail:     #171615;
+    --color-line:     #2C2927;
+    --color-linesoft: #232120;
+
+    --color-ink:   #F2F0EF;
+    --color-ink2:  #CAC6C4;
+    --color-muted: #96908D;
+    --color-faint: #6E6866;
+
+    /* Pure #FE0000 vibrates against a dark ground; lifted toward a
+       warmer, lighter red that keeps the brand read but stays legible. */
+    --color-accent:     #FF4038;
+    --color-accentfill: #C41219;
+    --color-accentsoft: #38100E;
+    --color-accentink:  #FF7A73;
+
+    --color-fast:    #2FC372;
+    --color-fastbg:  #102C1C;
+    --color-fastink: #5FD996;
+    --color-std:     #E6A343;
+    --color-stdbg:   #332512;
+    --color-stdink:  #F0BE72;
+    --color-inv:     #E5545C;
+    --color-invbg:   #351416;
+    --color-invink:  #F58A90;
+  }
+}
+
+/* Explicit dark choice wins over a light OS. */
+:root[data-theme="dark"] {
+  --color-canvas:   #121110;
+  --color-card:     #1C1A19;
+  --color-rail:     #171615;
+  --color-line:     #2C2927;
+  --color-linesoft: #232120;
+
+  --color-ink:   #F2F0EF;
+  --color-ink2:  #CAC6C4;
+  --color-muted: #96908D;
+  --color-faint: #6E6866;
+
+  --color-accent:     #FF4038;
+  --color-accentfill: #C41219;
+  --color-accentsoft: #38100E;
+  --color-accentink:  #FF7A73;
+
+  --color-fast:    #2FC372;
+  --color-fastbg:  #102C1C;
+  --color-fastink: #5FD996;
+  --color-std:     #E6A343;
+  --color-stdbg:   #332512;
+  --color-stdink:  #F0BE72;
+  --color-inv:     #E5545C;
+  --color-invbg:   #351416;
+  --color-invink:  #F58A90;
+}
+
+html { color-scheme: light dark; }
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* -----------------------------------------------------------------
+   Scoring loader.
+
+   Rings radiate outward while the model call is in flight; the core
+   breathes. Kept to two elements and one core so it reads as a status
+   indicator rather than a decorative animation.
+   ----------------------------------------------------------------- */
+@keyframes ai-radiate {
+  0%   { transform: scale(.55); opacity: 0; }
+  35%  { opacity: 1; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+@keyframes ai-breathe {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%      { transform: scale(1.25); opacity: .75; }
+}
+@keyframes ai-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ai-bounce {
+  0%, 60%, 100% { transform: translateY(0);    opacity: .45; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+.ai-ring  { animation: ai-radiate 2s cubic-bezier(.4, 0, .2, 1) infinite; }
+.ai-ring-2{ animation-delay: 1s; }
+.ai-core  { animation: ai-breathe 2s ease-in-out infinite; }
+.ai-spin  { animation: ai-spin .7s linear infinite; }
+.ai-dot   { animation: ai-bounce 1.3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+
+  /* Without motion these would sit at their start frame — opacity 0 for
+     the rings, half-faded for the dots — and read as broken. Pin them
+     visible so each still works as an indicator. */
+  .ai-ring { opacity: .5; transform: scale(1); }
+  .ai-core { opacity: 1;  transform: scale(1); }
+  .ai-dot  { opacity: 1;  transform: none; }
+}

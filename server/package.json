@@ -1,0 +1,32 @@
+{
+  "name": "clearing-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Clearing — claims intake and triage API",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "seed": "node scripts/seed.js",
+    "seed:stub": "node scripts/seed.js --stub",
+    "smoke": "node scripts/smoke.js",
+    "reroute": "node scripts/reroute.js",
+    "clean:reasoning": "node scripts/clean-reasoning.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.122.0",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/websocket": "^11.3.0",
+    "@napi-rs/canvas": "^1.0.9",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.12.1",
+    "openai": "^7.9.0",
+    "pdfjs-dist": "^6.3.289",
+    "ws": "^8.21.3",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "pino-pretty": "^13.1.3"
+  }
+}

@@ -1,0 +1,517 @@
+<title>Motor Claims Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{
+  --canvas:#F7F8F7; --card:#FFFFFF; --rail:#FFFFFF;
+  --line:#E8EAE8; --line-soft:#F0F2F0;
+  --ink:#101512; --ink-2:#3D4844; --muted:#6B7671; --faint:#9AA5A0;
+  --accent:#0FA958; --accent-soft:#E8F6EE; --accent-ink:#0A7A40;
+  --fast:#0FA958; --fast-bg:#E8F6EE; --fast-ink:#0A7A40;
+  --std:#D68910;  --std-bg:#FDF3E2;  --std-ink:#8A5A09;
+  --inv:#D64545;  --inv-bg:#FCEBEB;  --inv-ink:#9E2F2F;
+  --shadow:0 1px 2px rgba(16,21,18,.04), 0 4px 16px rgba(16,21,18,.05);
+  --shadow-sm:0 1px 2px rgba(16,21,18,.05);
+  --r:14px; --r-sm:9px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --canvas:#0E1211; --card:#171C1A; --rail:#131817;
+    --line:#252C29; --line-soft:#1E2422;
+    --ink:#EEF2F0; --ink-2:#C3CCC8; --muted:#8B9793; --faint:#66716D;
+    --accent:#2FC372; --accent-soft:#12301F; --accent-ink:#5FD996;
+    --fast:#2FC372; --fast-bg:#12301F; --fast-ink:#5FD996;
+    --std:#E6A343;  --std-bg:#332512;  --std-ink:#F0BE72;
+    --inv:#E86A6A;  --inv-bg:#331A1A;  --inv-ink:#F09292;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --canvas:#0E1211; --card:#171C1A; --rail:#131817;
+  --line:#252C29; --line-soft:#1E2422;
+  --ink:#EEF2F0; --ink-2:#C3CCC8; --muted:#8B9793; --faint:#66716D;
+  --accent:#2FC372; --accent-soft:#12301F; --accent-ink:#5FD996;
+  --fast:#2FC372; --fast-bg:#12301F; --fast-ink:#5FD996;
+  --std:#E6A343;  --std-bg:#332512;  --std-ink:#F0BE72;
+  --inv:#E86A6A;  --inv-bg:#331A1A;  --inv-ink:#F09292;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--canvas); color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+h1,h2,.num,.stat-v,.q-c{font-family:"Inter Tight",Inter,system-ui,sans-serif}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+
+.shell{display:flex; min-height:100vh}
+
+.rail{
+  width:56px; flex:none; background:var(--rail); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; gap:4px; padding:14px 0;
+}
+.logo{
+  width:30px; height:30px; border-radius:8px; background:var(--accent); color:#fff;
+  display:grid; place-items:center; font-family:"Inter Tight",Inter,sans-serif;
+  font-weight:700; font-size:15px; margin-bottom:14px;
+}
+.rail-btn{
+  width:34px; height:34px; border-radius:8px; border:0; background:transparent;
+  color:var(--faint); display:grid; place-items:center; cursor:pointer;
+}
+.rail-btn:hover{background:var(--line-soft); color:var(--ink-2)}
+.rail-btn.on{background:var(--accent-soft); color:var(--accent-ink)}
+.rail-sp{flex:1}
+
+.nav{
+  width:216px; flex:none; background:var(--rail); border-right:1px solid var(--line);
+  padding:14px 12px; display:flex; flex-direction:column; gap:2px;
+}
+.user{
+  display:flex; align-items:center; gap:9px; padding:8px; border-radius:var(--r-sm);
+  border:1px solid var(--line); margin-bottom:18px; cursor:pointer; background:var(--card);
+}
+.user:hover{border-color:var(--faint)}
+.ava{
+  width:30px; height:30px; border-radius:50%; background:#E4DAF6; color:#5B3FA8;
+  display:grid; place-items:center; font-weight:600; font-size:12px; flex:none;
+}
+.user-t{min-width:0; flex:1}
+.user-n{font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.user-r{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.chev{color:var(--faint); flex:none}
+
+.nav-h{
+  font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--faint); padding:0 8px; margin:16px 0 6px;
+}
+.nav-h.first{margin-top:0}
+.nav-i{
+  display:flex; align-items:center; gap:10px; padding:7px 8px; border-radius:var(--r-sm);
+  color:var(--ink-2); text-decoration:none; font-size:13px; font-weight:400;
+}
+.nav-i:hover{background:var(--line-soft)}
+.nav-i.on{background:var(--accent-soft); color:var(--accent-ink); font-weight:600}
+.nav-i svg{flex:none; opacity:.85}
+.nav-i .cnt{margin-left:auto; font-size:11px; font-weight:600; color:var(--muted); font-variant-numeric:tabular-nums}
+.nav-i.on .cnt{color:var(--accent-ink)}
+.nav-div{height:1px; background:var(--line); margin:16px 0 0}
+
+.recent{margin-top:14px}
+.rec-i{display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:7px; cursor:pointer}
+.rec-i:hover{background:var(--line-soft)}
+.rec-id{font-size:11.5px; color:var(--ink-2); font-variant-numeric:tabular-nums}
+.dot{width:7px; height:7px; border-radius:50%; margin-left:auto; flex:none}
+
+.main{flex:1; min-width:0; padding:26px 30px 60px; display:flex; flex-direction:column; gap:22px}
+.top{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap}
+h1{font-size:23px; font-weight:600; margin:0; letter-spacing:-.015em; text-wrap:balance}
+.sub{color:var(--muted); font-size:13px; margin-top:3px}
+.top-r{display:flex; align-items:center; gap:9px}
+.btn{
+  font:inherit; font-size:12.5px; font-weight:500; padding:7px 13px; border-radius:8px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink-2); cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px; box-shadow:var(--shadow-sm);
+}
+.btn:hover{border-color:var(--faint)}
+.btn-p{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn-p:hover{filter:brightness(.94); border-color:var(--accent)}
+
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+.stat{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  padding:15px 17px; box-shadow:var(--shadow-sm);
+}
+.stat-l{font-size:10px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--faint)}
+.stat-row{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-top:9px}
+.stat-v{font-size:27px; font-weight:600; letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums}
+.stat-u{font-size:15px; font-weight:500; color:var(--muted)}
+.stat-d{font-size:11.5px; font-weight:500; color:var(--accent-ink); margin-top:6px}
+.stat-d.warn{color:var(--std-ink)}
+.stat-d.plain{color:var(--muted)}
+.spark{display:flex; align-items:flex-end; gap:3px; height:34px}
+.spark i{width:6px; border-radius:2px; background:var(--line); display:block}
+.spark i.hi{background:var(--accent)}
+
+.qwrap{display:flex; flex-direction:column; gap:11px}
+.h2{font-size:16px; font-weight:600; margin:0; letter-spacing:-.01em}
+.queue{display:flex; overflow-x:auto; padding-bottom:2px}
+.q{
+  flex:1; min-width:200px; background:var(--card); border:1px solid var(--line);
+  padding:13px 20px 13px 26px; display:flex; align-items:center; gap:12px; cursor:pointer;
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%);
+  margin-right:-13px;
+}
+.q.f1{
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%);
+  border-radius:var(--r-sm) 0 0 var(--r-sm); padding-left:18px;
+}
+.q.last{margin-right:0}
+.q:hover{background:var(--line-soft)}
+.q-bar{width:3px; height:30px; border-radius:2px; flex:none}
+.q-t{flex:1; min-width:0}
+.q-n{font-size:12.5px; font-weight:600; letter-spacing:.02em}
+.q-s{font-size:11px; color:var(--muted); margin-top:1px}
+.q-c{font-size:19px; font-weight:600; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.q.fast .q-bar{background:var(--fast)} .q.fast .q-c{color:var(--fast-ink)}
+.q.std .q-bar{background:var(--std)}   .q.std .q-c{color:var(--std-ink)}
+.q.inv .q-bar{background:var(--inv)}   .q.inv .q-c{color:var(--inv-ink)}
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.card-h{display:flex; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); flex-wrap:wrap}
+.card-h .h2{margin-right:auto}
+.filters{display:flex; gap:5px; background:var(--line-soft); padding:3px; border-radius:9px}
+.f{
+  font:inherit; font-size:12px; font-weight:500; padding:5px 11px; border-radius:6px;
+  border:0; background:transparent; color:var(--muted); cursor:pointer;
+}
+.f:hover{color:var(--ink)}
+.f.on{background:var(--card); color:var(--ink); font-weight:600; box-shadow:var(--shadow-sm)}
+
+.tscroll{overflow-x:auto}
+table{width:100%; border-collapse:collapse; min-width:940px}
+th{
+  text-align:left; font-size:10px; font-weight:600; letter-spacing:.085em; text-transform:uppercase;
+  color:var(--faint); padding:9px 14px; border-bottom:1px solid var(--line);
+  white-space:nowrap; background:var(--card);
+}
+th.r,td.r{text-align:right}
+th.c,td.c{text-align:center}
+td{padding:11px 14px; border-bottom:1px solid var(--line-soft); vertical-align:middle}
+tr.row{cursor:pointer}
+tr.row:hover>td, tr.row.open>td{background:var(--line-soft)}
+tbody tr:last-child>td{border-bottom:0}
+
+.cid{font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap}
+.cwhen{font-size:11px; color:var(--faint); margin-top:2px; white-space:nowrap}
+.who{font-size:13px; font-weight:500; white-space:nowrap}
+.veh{font-size:11px; color:var(--muted); margin-top:2px; white-space:nowrap}
+.amt{font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap}
+
+.sc{display:inline-flex; flex-direction:column; align-items:center; gap:4px; min-width:38px}
+.sc-v{font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1}
+.meter{width:38px; height:3px; border-radius:2px; background:var(--line); overflow:hidden}
+.meter b{display:block; height:100%; border-radius:2px}
+.sc.lo b{background:var(--fast)} .sc.md b{background:var(--std)} .sc.hi b{background:var(--inv)}
+.sc.lo .sc-v{color:var(--fast-ink)} .sc.md .sc-v{color:var(--std-ink)} .sc.hi .sc-v{color:var(--inv-ink)}
+
+.pill{display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:99px; font-size:11.5px; font-weight:600; white-space:nowrap}
+.pill i{width:5px; height:5px; border-radius:50%; flex:none}
+.pill.fast{background:var(--fast-bg); color:var(--fast-ink)} .pill.fast i{background:var(--fast)}
+.pill.std{background:var(--std-bg); color:var(--std-ink)}   .pill.std i{background:var(--std)}
+.pill.inv{background:var(--inv-bg); color:var(--inv-ink)}   .pill.inv i{background:var(--inv)}
+
+.exp{color:var(--faint); transition:transform .15s ease}
+tr.row.open .exp{transform:rotate(90deg)}
+
+tr.detail{display:none}
+tr.detail.show{display:table-row}
+tr.detail>td{padding:0; background:var(--line-soft); border-bottom:1px solid var(--line)}
+.dwrap{padding:16px 18px 18px 42px; display:grid; grid-template-columns:1.35fr 1fr; gap:22px}
+.dh{font-size:10px; font-weight:600; letter-spacing:.085em; text-transform:uppercase; color:var(--faint); margin-bottom:8px}
+.dh.sp{margin-top:16px}
+.reason{
+  font-size:13px; line-height:1.62; color:var(--ink-2); max-width:66ch; margin:0;
+  background:var(--card); border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:0 var(--r-sm) var(--r-sm) 0; padding:12px 14px;
+}
+.flags{display:flex; flex-direction:column; gap:7px}
+.flag{display:flex; gap:9px; align-items:flex-start; font-size:12.5px; color:var(--ink-2)}
+.flag svg{flex:none; margin-top:2px}
+.flag.up svg{color:var(--inv)}
+.flag.ok svg{color:var(--fast)}
+.docs{display:flex; flex-wrap:wrap; gap:6px}
+.doc{
+  display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:500;
+  padding:4px 9px; border-radius:7px; border:1px solid var(--line); background:var(--card); color:var(--ink-2);
+}
+.doc.miss{border-style:dashed; color:var(--faint)}
+.doc svg{flex:none}
+.dacts{display:flex; gap:8px; flex-wrap:wrap; grid-column:1/-1}
+
+.foot{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 18px; border-top:1px solid var(--line); font-size:12px; color:var(--muted)}
+.pg{display:flex; gap:5px}
+.pgb{
+  font:inherit; font-size:12px; min-width:27px; height:27px; padding:0 7px; border-radius:7px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink-2); cursor:pointer;
+  font-variant-numeric:tabular-nums;
+}
+.pgb:hover{border-color:var(--faint)}
+.pgb.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600}
+
+@media (max-width:1180px){ .stats{grid-template-columns:repeat(2,1fr)} .dwrap{grid-template-columns:1fr} }
+@media (max-width:880px){ .nav{display:none} .main{padding:20px 16px 50px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+
+<div class="shell">
+  <aside class="rail">
+    <div class="logo">H</div>
+    <button class="rail-btn on" aria-label="Triage overview"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></button>
+    <button class="rail-btn" aria-label="Claims"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M4 12h16M4 18h7"/></svg></button>
+    <button class="rail-btn" aria-label="Vehicles"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17v-5l2-5h14l2 5v5h-3M3 17h3m12 0h3"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/></svg></button>
+    <button class="rail-btn" aria-label="Fraud signals"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"/></svg></button>
+    <button class="rail-btn" aria-label="Reports"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V6a2 2 0 012-2h8l6 6v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 4v6h6"/></svg></button>
+    <div class="rail-sp"></div>
+    <button class="rail-btn" aria-label="Settings"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M2 12h3m14 0h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+  </aside>
+
+  <nav class="nav">
+    <div class="user">
+      <div class="ava">PE</div>
+      <div class="user-t">
+        <div class="user-n">Prince Essandoh</div>
+        <div class="user-r">Claims Supervisor</div>
+      </div>
+      <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+    </div>
+
+    <div class="nav-h first">Triage</div>
+    <a class="nav-i on" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>Fast-Track<span class="cnt">47</span></a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>Standard<span class="cnt">112</span></a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>Investigation<span class="cnt">9</span></a>
+
+    <div class="nav-h">Operations</div>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M4 12h16M4 18h7"/></svg>All Claims</a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V6a2 2 0 012-2h8l6 6v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 4v6h6"/></svg>Documents</a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M17 11h4M19 9v4"/></svg>Claimants</a>
+
+    <div class="nav-h">Governance</div>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"/></svg>Fraud Signals</a>
+    <a class="nav-i" href="#"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v16h16"/><path d="M8 15l3.5-4 3 2.5L20 7"/></svg>Audit Trail</a>
+
+    <div class="nav-div"></div>
+    <div class="recent">
+      <div class="nav-h">Recent Claims</div>
+      <div class="rec-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--faint)"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="rec-id">CLM-2401-0026</span><span class="dot" style="background:var(--inv)"></span></div>
+      <div class="rec-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--faint)"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="rec-id">CLM-2401-0019</span><span class="dot" style="background:var(--fast)"></span></div>
+      <div class="rec-i"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--faint)"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="rec-id">CLM-2401-0014</span><span class="dot" style="background:var(--std)"></span></div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="top">
+      <div>
+        <h1>Good morning, Prince</h1>
+        <div class="sub">168 claims triaged automatically since midnight &middot; 9 need your attention</div>
+      </div>
+      <div class="top-r">
+        <button class="btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Export</button>
+        <button class="btn btn-p"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Claim</button>
+      </div>
+    </div>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-l">Claims Triaged Today</div>
+        <div class="stat-row">
+          <div><div class="stat-v">168</div><div class="stat-d">&uarr; 12% vs yesterday</div></div>
+          <div class="spark"><i style="height:40%"></i><i style="height:55%"></i><i style="height:35%"></i><i style="height:70%"></i><i style="height:60%"></i><i class="hi" style="height:88%"></i><i class="hi" style="height:100%"></i></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Auto Fast-Tracked</div>
+        <div class="stat-row">
+          <div><div class="stat-v">28%</div><div class="stat-d plain">47 of 168 claims</div></div>
+          <div class="spark"><i style="height:30%"></i><i style="height:38%"></i><i style="height:45%"></i><i style="height:42%"></i><i style="height:58%"></i><i class="hi" style="height:66%"></i><i class="hi" style="height:74%"></i></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Avg Triage Time</div>
+        <div class="stat-row">
+          <div><div class="stat-v">4.2<span class="stat-u">s</span></div><div class="stat-d plain">assumed 48h manual baseline</div></div>
+          <div class="spark"><i style="height:90%"></i><i style="height:72%"></i><i style="height:60%"></i><i style="height:48%"></i><i style="height:40%"></i><i class="hi" style="height:32%"></i><i class="hi" style="height:26%"></i></div>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Flagged for Investigation</div>
+        <div class="stat-row">
+          <div><div class="stat-v">9</div><div class="stat-d warn">5.4% of today&rsquo;s volume</div></div>
+          <div class="spark"><i style="height:20%"></i><i style="height:34%"></i><i style="height:26%"></i><i style="height:44%"></i><i style="height:38%"></i><i class="hi" style="height:56%"></i><i class="hi" style="height:48%"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="qwrap">
+      <h2 class="h2">Work Queue</h2>
+      <div class="queue">
+        <div class="q fast f1"><span class="q-bar"></span><div class="q-t"><div class="q-n">FAST-TRACK</div><div class="q-s">Auto-settle eligible</div></div><div class="q-c">47</div></div>
+        <div class="q std"><span class="q-bar"></span><div class="q-t"><div class="q-n">STANDARD REVIEW</div><div class="q-s">Assessor assigned</div></div><div class="q-c">112</div></div>
+        <div class="q inv last"><span class="q-bar"></span><div class="q-t"><div class="q-n">INVESTIGATION</div><div class="q-s">Fraud unit referred</div></div><div class="q-c">9</div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h">
+        <h2 class="h2">Triage Decisions</h2>
+        <div class="filters">
+          <button class="f on" data-r="all">All</button>
+          <button class="f" data-r="fast">Fast-Track</button>
+          <button class="f" data-r="std">Standard</button>
+          <button class="f" data-r="inv">Investigation</button>
+        </div>
+      </div>
+
+      <div class="tscroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:26px"></th>
+              <th>Claim</th>
+              <th>Claimant</th>
+              <th class="r">Amount</th>
+              <th class="c">Complexity</th>
+              <th class="c">Docs</th>
+              <th class="c">Fraud Risk</th>
+              <th>Route</th>
+            </tr>
+          </thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">
+        <span id="cnt">Showing 6 of 168 claims triaged today</span>
+        <div class="pg">
+          <button class="pgb" aria-label="Previous page">&lsaquo;</button>
+          <button class="pgb on">1</button>
+          <button class="pgb">2</button>
+          <button class="pgb">3</button>
+          <button class="pgb" aria-label="Next page">&rsaquo;</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+var CLAIMS = [
+  { id:'CLM-2401-0026', when:'08:42 today', who:'Adaeze Okonkwo', veh:'Toyota Corolla 2018 · LSD-441-KJ',
+    amt:2850000, cx:78, doc:52, fr:87, route:'inv',
+    reason:'Policy was activated 11 days before the reported accident, and this is the first claim on it. The repair estimate of ₦2,850,000 is 71% of the vehicle’s insured value — unusually high for the damage described in the report. The submitting garage, Elite Autoworks Lekki, appears on four other claims flagged this quarter. The police report is dated one day before the stated accident date, an inconsistency that cannot be reconciled from the documents supplied.',
+    flags:[['up','Policy age 11 days at loss'],['up','Estimate 71% of insured value'],['up','Garage repeats across 4 flagged claims'],['up','Police report predates accident date']],
+    docs:[['ok','Police report'],['ok','Damage photos (6)'],['ok','Driver’s licence'],['miss','Vehicle particulars'],['miss','Independent estimate']] },
+
+  { id:'CLM-2401-0025', when:'08:31 today', who:'Chinedu Balogun', veh:'Honda Accord 2016 · ABC-209-LA',
+    amt:184000, cx:14, doc:100, fr:8, route:'fast',
+    reason:'Straightforward rear bumper claim, well under the ₦500,000 fast-track ceiling. Policy has been active 3 years 2 months with no prior claims. All five required documents were supplied at submission and passed validation. Damage in the photographs is consistent with the described low-speed collision. No fraud signals triggered.',
+    flags:[['ok','Policy active 3y 2m, no prior claims'],['ok','All documents complete and valid'],['ok','Damage consistent with description'],['ok','Amount 37% of fast-track ceiling']],
+    docs:[['ok','Police report'],['ok','Damage photos (4)'],['ok','Driver’s licence'],['ok','Vehicle particulars'],['ok','Repair estimate']] },
+
+  { id:'CLM-2401-0024', when:'08:19 today', who:'Fatima Abubakar', veh:'Lexus RX350 2020 · KJA-887-BG',
+    amt:1420000, cx:56, doc:80, fr:31, route:'std',
+    reason:'Mid-value collision claim requiring assessor review. Policy history is clean across 2 years 8 months with one prior claim settled without issue. Documentation is complete except the independent repair estimate, which is still outstanding. The amount exceeds the fast-track ceiling, so standard review applies regardless of the low fraud score.',
+    flags:[['ok','Clean history, 1 prior claim settled'],['ok','Fraud indicators below threshold'],['up','Independent estimate outstanding'],['up','Amount above fast-track ceiling']],
+    docs:[['ok','Police report'],['ok','Damage photos (8)'],['ok','Driver’s licence'],['ok','Vehicle particulars'],['miss','Independent estimate']] },
+
+  { id:'CLM-2401-0023', when:'07:58 today', who:'Emeka Nwosu', veh:'Kia Rio 2015 · EKY-332-XA',
+    amt:96500, cx:9, doc:100, fr:5, route:'fast',
+    reason:'Minor windscreen replacement, the lowest-complexity category in the motor book. Policy active 4 years 7 months with a consistent premium record. Documentation is complete and the invoice matches published rates for the vehicle model. Cleared for automatic settlement.',
+    flags:[['ok','Policy active 4y 7m'],['ok','Invoice matches published rates'],['ok','All documents complete'],['ok','Lowest complexity band']],
+    docs:[['ok','Damage photos (3)'],['ok','Driver’s licence'],['ok','Vehicle particulars'],['ok','Replacement invoice']] },
+
+  { id:'CLM-2401-0022', when:'07:44 today', who:'Blessing Adeyemi', veh:'Toyota Hilux 2019 · GGE-105-AA',
+    amt:3960000, cx:91, doc:64, fr:44, route:'std',
+    reason:'High-value claim involving a third party with reported injury, placing it in the top complexity band. Fraud indicators are moderate rather than elevated — the policy is mature and the claimant has no prior claims — but third-party medical documentation and the injury assessment are both outstanding. Routed to standard review with a senior assessor flag rather than to investigation.',
+    flags:[['ok','Policy mature, no prior claims'],['up','Third-party injury reported'],['up','Medical documentation outstanding'],['up','Top complexity band — senior assessor']],
+    docs:[['ok','Police report'],['ok','Damage photos (11)'],['ok','Driver’s licence'],['ok','Vehicle particulars'],['miss','Third-party medical report'],['miss','Injury assessment']] },
+
+  { id:'CLM-2401-0021', when:'07:12 today', who:'Yusuf Ibrahim', veh:'Mercedes C300 2017 · AKD-778-FF',
+    amt:5100000, cx:84, doc:38, fr:76, route:'inv',
+    reason:'Third claim filed on this policy in seven months, all three reporting theft or total loss. The vehicle was reported stolen from an address that does not match the policy record, and no police extract has been supplied — only a station acknowledgement slip. Ownership documents are absent. The combination of claim frequency, missing ownership proof and address mismatch warrants investigation before assessment work proceeds.',
+    flags:[['up','3 claims in 7 months on this policy'],['up','Loss address differs from policy record'],['up','No police extract supplied'],['up','Ownership documents absent']],
+    docs:[['ok','Station acknowledgement'],['ok','Driver’s licence'],['miss','Police extract'],['miss','Vehicle particulars'],['miss','Proof of ownership'],['miss','Tracker report']] }
+];
+
+var NAMES = { fast:'Fast-Track', std:'Standard Review', inv:'Investigation' };
+var ACTS  = { fast:'Approve settlement', std:'Assign assessor', inv:'Assign to fraud unit' };
+
+var ICON_UP = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3.5L21.5 20H2.5z"/><path d="M12 10v4M12 17h.01"/></svg>';
+var ICON_OK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M8 12.2l2.8 2.8L16 9.5"/></svg>';
+var D_OK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="color:var(--fast)"><path d="M5 13l4 4L19 7"/></svg>';
+var D_NO = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>';
+
+function band(v){ return v < 34 ? 'lo' : v < 67 ? 'md' : 'hi'; }
+function naira(n){ return '₦' + n.toLocaleString('en-NG'); }
+function sc(v){
+  return '<span class="sc ' + band(v) + '"><span class="sc-v">' + v + '</span>' +
+         '<span class="meter"><b style="width:' + v + '%"></b></span></span>';
+}
+
+document.getElementById('tb').innerHTML = CLAIMS.map(function(c, i){
+  return '' +
+  '<tr class="row" data-i="' + i + '" data-r="' + c.route + '" tabindex="0" role="button" aria-expanded="false">' +
+    '<td><svg class="exp" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></td>' +
+    '<td><div class="cid">' + c.id + '</div><div class="cwhen">' + c.when + '</div></td>' +
+    '<td><div class="who">' + c.who + '</div><div class="veh">' + c.veh + '</div></td>' +
+    '<td class="r"><span class="amt">' + naira(c.amt) + '</span></td>' +
+    '<td class="c">' + sc(c.cx) + '</td>' +
+    '<td class="c">' + sc(c.doc) + '</td>' +
+    '<td class="c">' + sc(c.fr) + '</td>' +
+    '<td><span class="pill ' + c.route + '"><i></i>' + NAMES[c.route] + '</span></td>' +
+  '</tr>' +
+  '<tr class="detail" id="d' + i + '" data-r="' + c.route + '"><td colspan="8"><div class="dwrap">' +
+    '<div><div class="dh">Why this route</div><p class="reason">' + c.reason + '</p></div>' +
+    '<div>' +
+      '<div class="dh">Signals</div>' +
+      '<div class="flags">' + c.flags.map(function(f){
+        return '<div class="flag ' + f[0] + '">' + (f[0] === 'up' ? ICON_UP : ICON_OK) + '<span>' + f[1] + '</span></div>';
+      }).join('') + '</div>' +
+      '<div class="dh sp">Documents</div>' +
+      '<div class="docs">' + c.docs.map(function(d){
+        return '<span class="doc' + (d[0] === 'miss' ? ' miss' : '') + '">' + (d[0] === 'miss' ? D_NO : D_OK) + d[1] + '</span>';
+      }).join('') + '</div>' +
+    '</div>' +
+    '<div class="dacts">' +
+      '<button class="btn btn-p">' + ACTS[c.route] + '</button>' +
+      '<button class="btn">Override route</button>' +
+      '<button class="btn">Request documents</button>' +
+      '<button class="btn">View audit trail</button>' +
+    '</div>' +
+  '</div></td></tr>';
+}).join('');
+
+function toggle(row){
+  var d = document.getElementById('d' + row.dataset.i);
+  var open = d.classList.toggle('show');
+  row.classList.toggle('open', open);
+  row.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+Array.prototype.forEach.call(document.querySelectorAll('tr.row'), function(r){
+  r.addEventListener('click', function(){ toggle(r); });
+  r.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(r); }
+  });
+});
+
+Array.prototype.forEach.call(document.querySelectorAll('.f'), function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('.f'), function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    var want = b.dataset.r, shown = 0;
+    Array.prototype.forEach.call(document.querySelectorAll('tr.row'), function(r){
+      var hit = (want === 'all' || r.dataset.r === want);
+      r.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+      if (!hit) {
+        var d = document.getElementById('d' + r.dataset.i);
+        d.classList.remove('show');
+        r.classList.remove('open');
+        r.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.getElementById('cnt').textContent =
+      'Showing ' + shown + ' of 168 claims triaged today';
+  });
+});
+</script>
