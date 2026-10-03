@@ -1,12 +1,10 @@
 /**
  * API client.
  *
- * Vite proxies /api to the Fastify server on :8000 in development
- * (see vite.config.js), so these are same-origin in both dev and a
- * deployment that puts them behind one host.
+ * Vite proxies /api locally; production uses the shared backend URL.
  */
 
-const BASE = import.meta.env.VITE_API_BASE ?? ''
+import { API_BASE as BASE } from './backend'
 
 async function get(path) {
   const res = await fetch(`${BASE}${path}`)

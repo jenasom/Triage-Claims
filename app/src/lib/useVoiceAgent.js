@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { voiceUrl } from './backend'
 
 /**
  * Live voice conversation with the intake agent.
@@ -141,9 +142,7 @@ export default function useVoiceAgent({
       })
       stream.current = mic
 
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-      const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : ''
-      const socket = new WebSocket(`${proto}://${window.location.host}${path}${query}`)
+      const socket = new WebSocket(voiceUrl(path, sessionId))
       socket.binaryType = 'arraybuffer'
       ws.current = socket
 
