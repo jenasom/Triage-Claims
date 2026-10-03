@@ -53,7 +53,7 @@ app.get('/health', async () => ({
 const port = Number(process.env.PORT) || 8000
 
 try {
-  await app.listen({ port, host: '127.0.0.1' })
+  await app.listen({ port, host: '0.0.0.0' })
 
   const n = claimCount()
   if (n === 0) {
